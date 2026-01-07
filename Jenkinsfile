@@ -3,44 +3,50 @@ pipeline {
 
   environment {
     PROJECT_ID = "static-concept-483605-s9"
-    REGION = "us-central1"
-    REPO = "demo-repo"
-    IMAGE = "demo-nginx"
-    TAG = "v1"
+    REGION     = "us-central1"
+    REPO       = "demo-repo"
+    IMAGE      = "demo-nginx"
+    TAG        = "v1"
+
+    IMAGE_URI  = "${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/${IMAGE}:${TAG}"
   }
 
   stages {
 
-    stage('Checkout') {
+    stage('Checkout Source Code') {
       steps {
+        echo "Checking out source code from GitHub"
         git branch: 'main',
-        url: 'https://github.com/anandhinandhi052-web/demo-gitops-app.git'
+            url: 'https://github.com/<YOUR_GITHUB_USERNAME>/<YOUR_REPO_NAME>.git'
       }
     }
 
-    stage('Build Image') {
+    stage('Build & Push Image using Cloud Build') {
       steps {
-        sh '''
-        docker build -t $REGION-docker.pkg.dev/$PROJECT_ID/$REPO/$IMAGE:$TAG .
-        '''
+        echo "Triggering Google Cloud Build"
+        sh """
+          gcloud config set project ${PROJECT_ID}
+          gcloud builds submit --tag ${IMAGE_URI} .
+        """
       }
     }
 
-    stage('Authenticate GCP') {
+    stage('Verify Image in Artifact Registry') {
       steps {
-        sh '''
-        gcloud auth configure-docker $REGION-docker.pkg.dev -q
-        '''
+        echo "Verifying image in Artifact Registry"
+        sh """
+          gcloud artifacts docker images list ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}
+        """
       }
     }
+  }
 
-    stage('Push Image') {
-      steps {
-        sh '''
-        docker push $REGION-docker.pkg.dev/$PROJECT_ID/$REPO/$IMAGE:$TAG
-        '''
-      }
+  post {
+    success {
+      echo "CI pipeline completed successfully. Image pushed to Artifact Registry."
     }
-
+    failure {
+      echo "CI pipeline failed. Please check logs."
+    }
   }
 }
