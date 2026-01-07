@@ -15,6 +15,6 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: nginx:latest
+        image: us-central1-docker.pkg.dev/static-concept-483605-s9/demo-repo/demo-nginx:v1
         ports:
         - containerPort: 80
