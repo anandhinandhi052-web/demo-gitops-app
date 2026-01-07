@@ -17,7 +17,7 @@ pipeline {
       steps {
         echo "Checking out source code from GitHub"
         git branch: 'main',
-            url: 'https://github.com/<YOUR_GITHUB_USERNAME>/<YOUR_REPO_NAME>.git'
+            url: 'https://github.com/anandhinandhi052-web/demo-gitops-app.git'
       }
     }
 
