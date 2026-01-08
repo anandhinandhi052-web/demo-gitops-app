@@ -1,24 +1,16 @@
 pipeline {
   agent any
 
-  environment {
-    PROJECT_ID = "static-concept-483605-s9"
-    REGION     = "us-central1"
-    REPO       = "demo-repo"
-    IMAGE      = "demo-nginx"
-    TAG        = "v1"
-  }
-
   stages {
-
-    stage('Build & Push Image (Cloud Build)') {
+    stage('Checkout') {
       steps {
-        sh '''
-          echo "Submitting build to Google Cloud Build..."
+        echo "Code checked out from GitHub"
+      }
+    }
 
-          gcloud builds submit \
-            --tag $REGION-docker.pkg.dev/$PROJECT_ID/$REPO/$IMAGE:$TAG
-        '''
+    stage('CI Validation') {
+      steps {
+        echo "CI checks passed (lint/tests placeholder)"
       }
     }
   }
