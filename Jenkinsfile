@@ -11,29 +11,13 @@ pipeline {
 
   stages {
 
-    stage('Build Docker Image') {
+    stage('Build & Push Image (Cloud Build)') {
       steps {
         sh '''
-          echo "Building Docker image..."
-          docker build -t $REGION-docker.pkg.dev/$PROJECT_ID/$REPO/$IMAGE:$TAG .
-        '''
-      }
-    }
+          echo "Submitting build to Google Cloud Build..."
 
-    stage('Authenticate to GCP Artifact Registry') {
-      steps {
-        sh '''
-          echo "Authenticating Docker with GCP..."
-          gcloud auth configure-docker $REGION-docker.pkg.dev -q
-        '''
-      }
-    }
-
-    stage('Push Image') {
-      steps {
-        sh '''
-          echo "Pushing image to Artifact Registry..."
-          docker push $REGION-docker.pkg.dev/$PROJECT_ID/$REPO/$IMAGE:$TAG
+          gcloud builds submit \
+            --tag $REGION-docker.pkg.dev/$PROJECT_ID/$REPO/$IMAGE:$TAG
         '''
       }
     }
