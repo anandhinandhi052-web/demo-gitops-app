@@ -13,40 +13,31 @@ pipeline {
 
   stages {
 
-    stage('Checkout Source Code') {
+    stage('Checkout') {
       steps {
-        echo "Checking out source code from GitHub"
         git branch: 'main',
-            url: 'https://github.com/anandhinandhi052-web/demo-gitops-app.git'
+            url: 'https://github.com/<YOUR_GITHUB_USERNAME>/<YOUR_REPO>.git'
       }
     }
 
-    stage('Build & Push Image using Cloud Build') {
+    stage('Authenticate to GCP') {
       steps {
-        echo "Triggering Google Cloud Build"
-        sh """
-          gcloud config set project ${PROJECT_ID}
-          gcloud builds submit --tag ${IMAGE_URI} .
-        """
+        withCredentials([file(credentialsId: 'gcp-sa-key', variable: 'GCLOUD_KEY')]) {
+          sh '''
+            gcloud auth activate-service-account --key-file=$GCLOUD_KEY
+            gcloud config set project static-concept-483605-s9
+          '''
+        }
       }
     }
 
-    stage('Verify Image in Artifact Registry') {
+    stage('Build & Push Image (Cloud Build)') {
       steps {
-        echo "Verifying image in Artifact Registry"
-        sh """
-          gcloud artifacts docker images list ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}
-        """
+        sh '''
+          gcloud builds submit --tag us-central1-docker.pkg.dev/static-concept-483605-s9/demo-repo/demo-nginx:v1 .
+        '''
       }
     }
-  }
 
-  post {
-    success {
-      echo "CI pipeline completed successfully. Image pushed to Artifact Registry."
-    }
-    failure {
-      echo "CI pipeline failed. Please check logs."
-    }
   }
 }
